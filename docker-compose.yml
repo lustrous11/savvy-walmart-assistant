@@ -1,0 +1,48 @@
+
+
+services:
+  db:
+    image: postgres:13
+    container_name: walmart_savvy_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=walmartsavvy
+      - POSTGRES_USER=savvyuser
+      - POSTGRES_PASSWORD=savvypassword
+    ports:
+      - "5432:5432"
+
+  user_service:
+    build: ./backend/user_service
+    container_name: user_service
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./backend/user_service:/app
+    depends_on:
+      - db
+
+  community_service:
+    build: ./backend/community_service
+    container_name: community_service
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./backend/community_service:/app
+    depends_on:
+      - db
+
+  recommendation_service:
+    build: ./backend/recommendation_service
+    ports:
+      - "8000:8000"
+    volumes:
+      # Map our new local model folder to the /model directory inside the container
+      - ./backend/recommendation_service/phi-3-local-model:/model
+      - ./backend/recommendation_service:/app
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
